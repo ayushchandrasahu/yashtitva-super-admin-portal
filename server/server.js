@@ -16,7 +16,12 @@ const MAX_FILE_SIZE_MB = 10;
 initDB();
 
 // Ensure uploads folder exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const os = require('os');
+const isVercel = process.env.VERCEL === '1';
+const uploadsDir = isVercel 
+  ? path.join(os.tmpdir(), 'uploads') 
+  : path.join(__dirname, '..', 'uploads');
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -634,7 +639,12 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Yashtitva Super Admin Backend running on port ${PORT}`);
-});
+// Export app for Vercel serverless functions
+module.exports = app;
+
+// Start Server locally
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Yashtitva Super Admin Backend running on port ${PORT}`);
+  });
+}

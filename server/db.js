@@ -2,12 +2,20 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.join(__dirname, 'yashtitva.db');
+const os = require('os');
+const isVercel = process.env.VERCEL === '1';
+const dbPath = isVercel ? path.join(os.tmpdir(), 'yashtitva.db') : path.join(__dirname, 'yashtitva.db');
 const db = new Database(dbPath);
 
 // Enable foreign keys and WAL mode for reliability
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+if (!isVercel) {
+  try {
+    db.pragma('journal_mode = WAL');
+  } catch (e) {}
+}
+try {
+  db.pragma('foreign_keys = ON');
+} catch (e) {}
 
 // Initialize database schema
 function initDB() {
