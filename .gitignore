@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+build/
+
+# Local databases and runtime state
+server/*.db
+server/*.db-journal
+server/*.db-wal
+server/*.db-shm
+*.sqlite
+*.sqlite3
+
+# Uploads directory (retain directory with .gitkeep)
+uploads/*
+!uploads/.gitkeep
+!uploads/sample_approval_doc.pdf
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

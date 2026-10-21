@@ -1,0 +1,752 @@
+/* Yashtitva Super Admin Portal Design System */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-bg-main: #FDFCF8;       /* Warm Ivory */
+  --color-surface-card: #FFFFFF;  /* Pure White */
+  --color-surface-sec: #F3D9BA;   /* Soft Beige */
+  --color-accent-gold: #E4B886;   /* Golden Tan */
+  --color-accent-gold-hover: #D7A66F;
+  --color-accent-gold-dark: #C49156;
+  --color-text-primary: #2A1A14;  /* Deep Espresso */
+  --color-text-secondary: #66564E;/* Muted Brown */
+  --color-text-muted: #8E7D75;
+  --color-border: #E8DED3;        /* Thin Soft Border */
+  --color-border-focus: #C49156;
+  --color-danger: #A32929;
+  --color-danger-bg: #FCF4F4;
+  --color-danger-border: #F3C6C6;
+  --color-success: #2B6E3F;
+  --color-success-bg: #F2F9F4;
+  --color-success-border: #C8E6CE;
+  --color-warning: #945B0A;
+  --color-warning-bg: #FDF9F0;
+  --color-warning-border: #F5E5C2;
+
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  
+  --shadow-subtle: 0 1px 3px rgba(42, 26, 20, 0.04), 0 1px 2px rgba(42, 26, 20, 0.02);
+  --shadow-card: 0 2px 6px rgba(42, 26, 20, 0.05), 0 1px 2px rgba(42, 26, 20, 0.03);
+  --shadow-modal: 0 10px 25px -5px rgba(42, 26, 20, 0.12), 0 8px 10px -6px rgba(42, 26, 20, 0.08);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* Header & Top Bar */
+.brand-header {
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-main);
+}
+
+.brand-corner-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.brand-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-badge {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: #FAF4ED;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.nav-link-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background-color 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-link-btn:hover {
+  color: var(--color-text-primary);
+  background-color: #F7EFE6;
+}
+
+.nav-link-btn.danger {
+  color: var(--color-danger);
+}
+
+.nav-link-btn.danger:hover {
+  background-color: var(--color-danger-bg);
+}
+
+/* Main Container */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+/* Page Titles */
+.page-title {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.015em;
+}
+
+/* ========================================================
+   PAGE 1: LOGIN PAGE
+   ======================================================== */
+.login-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-main);
+}
+
+.login-top-corner {
+  padding: 2rem 2.5rem;
+}
+
+.login-logo {
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+}
+
+.login-center-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  margin-top: -3rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem;
+  box-shadow: var(--shadow-card);
+}
+
+.login-card-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 1.5rem;
+  text-align: left;
+  letter-spacing: -0.01em;
+}
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.form-label-required::after {
+  content: " *";
+  color: var(--color-danger);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(228, 184, 134, 0.35);
+}
+
+.form-input.has-error,
+.form-select.has-error {
+  border-color: var(--color-danger);
+  background-color: #FFFDFD;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+.password-toggle-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.field-error-msg {
+  font-size: 0.775rem;
+  color: var(--color-danger);
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+.banner-alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.banner-alert.error {
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+}
+
+.banner-alert.success {
+  background-color: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success);
+}
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 0.6875rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-accent-gold);
+  border: 1px solid var(--color-accent-gold-dark);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-gold-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.6875rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #FAF4ED;
+  border-color: #D6C7B8;
+}
+
+/* ========================================================
+   PAGE 2: SUPER ADMIN HOME (TWO SECTIONS)
+   ======================================================== */
+.home-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .home-sections-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.home-section-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-subtle);
+  min-height: 270px;
+}
+
+.home-section-content {
+  margin-bottom: 2rem;
+}
+
+.home-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.875rem;
+  letter-spacing: -0.01em;
+}
+
+.home-section-desc {
+  font-size: 0.925rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.home-section-action .btn-primary {
+  width: auto;
+  min-width: 200px;
+}
+
+/* ========================================================
+   PAGE 3: NEW COLLEGE REGISTRATION FORM
+   ======================================================== */
+.registration-form-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-subtle);
+  max-width: 760px;
+}
+
+.file-upload-box {
+  border: 1px dashed var(--color-border);
+  background-color: #FAF6F0;
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.file-upload-box.has-file {
+  border-color: var(--color-accent-gold-dark);
+  background-color: #FAF4ED;
+}
+
+.choose-file-btn {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.choose-file-btn:hover {
+  background-color: #FAF4ED;
+  border-color: var(--color-accent-gold-dark);
+}
+
+.file-status-info {
+  font-size: 0.825rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-status-info strong {
+  color: var(--color-text-primary);
+}
+
+.form-actions-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.form-actions-row .btn-primary,
+.form-actions-row .btn-secondary {
+  width: auto;
+  min-width: 140px;
+}
+
+/* ========================================================
+   PAGE 4: REGISTERED COLLEGES
+   ======================================================== */
+.filter-bar-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-clear-filters {
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: 0.58rem 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  height: 38px;
+  transition: all 0.15s ease;
+}
+
+.btn-clear-filters:hover {
+  color: var(--color-text-primary);
+  background-color: #FAF4ED;
+}
+
+/* Colleges Table */
+.table-container-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+  margin-bottom: 2.5rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table th {
+  background-color: #FAF6F0;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.data-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: #FCF9F5;
+}
+
+.data-table td.col-name {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Status Badges */
+.status-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.active {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.status-pill.pending-verification {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning-border);
+}
+
+.status-pill.overdue {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+}
+
+.status-pill.paid {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.status-pill.pending-payment {
+  background-color: #FFF9ED;
+  color: #8C5B05;
+  border: 1px solid #EEDBB3;
+}
+
+/* Pagination */
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  background-color: #FCFAF6;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.825rem;
+  color: var(--color-text-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.825rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--color-text-primary);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Outstanding Licence Dues Box */
+.outstanding-dues-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-subtle);
+  margin-top: 2rem;
+}
+
+.outstanding-header {
+  margin-bottom: 1.25rem;
+}
+
+.outstanding-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.outstanding-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.outstanding-table-wrap {
+  overflow-x: auto;
+}
+
+.btn-table-action {
+  background: none;
+  border: 1px solid var(--color-border);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.775rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.btn-table-action:hover {
+  background-color: #FAF4ED;
+  border-color: var(--color-accent-gold-dark);
+}
+
+.empty-state-text {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Detail Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(42, 26, 20, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.modal-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  padding: 2rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-grid-full {
+  grid-column: span 2;
+}
+
+.modal-label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.modal-val {
+  font-size: 0.925rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
