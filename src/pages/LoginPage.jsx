@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import AcademicBackground from '../components/AcademicBackground';
 
 export default function LoginPage({ onLoginSuccess, sessionMessage }) {
   const [userId, setUserId] = useState('');
@@ -65,6 +66,7 @@ export default function LoginPage({ onLoginSuccess, sessionMessage }) {
 
   return (
     <div className="login-page-wrapper">
+      <AcademicBackground variant="login" />
       <div className="login-top-corner">
         <img 
           src="/yashtitva-logo.png" 

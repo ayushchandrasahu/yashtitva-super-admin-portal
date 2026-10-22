@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import AcademicBackground from './components/AcademicBackground';
 import LoginPage from './pages/LoginPage';
 import SuperAdminHomePage from './pages/SuperAdminHomePage';
 import NewCollegeRegistrationPage from './pages/NewCollegeRegistrationPage';
@@ -114,8 +115,15 @@ export default function App() {
   }
 
   // Authenticated Pages with Yashtitva brand header
+  const getBackgroundVariant = () => {
+    if (currentPath === '/super-admin') return 'dashboard';
+    if (currentPath === '/super-admin/colleges/register') return 'form';
+    return 'data';
+  };
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="portal-authenticated-shell">
+      <AcademicBackground variant={getBackgroundVariant()} />
       <Header
         user={user}
         onLogout={() => handleLogout()}
@@ -123,7 +131,7 @@ export default function App() {
         currentPath={currentPath}
       />
 
-      <div style={{ flex: 1 }}>
+      <div className="portal-page-content">
         {currentPath === '/super-admin' && (
           <SuperAdminHomePage onNavigate={navigateTo} />
         )}

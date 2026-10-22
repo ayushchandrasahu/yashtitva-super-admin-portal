@@ -1,5 +1,5 @@
 /* Yashtitva Super Admin Portal Design System */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   --color-bg-main: #FDFCF8;       /* Warm Ivory */
@@ -24,6 +24,7 @@
   --color-warning-border: #F5E5C2;
 
   --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
@@ -56,7 +57,10 @@ body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg-main);
+  background-color: rgba(253, 252, 248, 0.92);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 10;
 }
 
 .brand-corner-logo {
@@ -117,6 +121,8 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 /* Page Titles */
@@ -136,10 +142,14 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--color-bg-main);
+  position: relative;
+  overflow-x: hidden;
 }
 
 .login-top-corner {
   padding: 2rem 2.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 .login-logo {
@@ -155,6 +165,8 @@ body {
   align-items: center;
   padding: 1.5rem;
   margin-top: -3rem;
+  position: relative;
+  z-index: 2;
 }
 
 .login-card {
@@ -750,3 +762,255 @@ body {
   color: var(--color-text-primary);
   font-weight: 500;
 }
+
+/* ========================================================
+   ACADEMIC BACKGROUND SYSTEM (YASHTITVA SIGNATURE DESIGN)
+   ======================================================== */
+.portal-authenticated-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  background-color: var(--color-bg-main);
+}
+
+.portal-page-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.academic-bg-root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.academic-bg-canvas {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 18% 28%, #FFFDF9 0%, #FDFCF8 52%, #FAF4EB 100%);
+}
+
+/* Top-right organic architectural curves & caramel linework */
+.academic-bg-topright-curves {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 46vw;
+  max-width: 660px;
+  height: 38vh;
+  min-height: 240px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Institutional Architecture (Classical University Campus Facade) */
+.academic-bg-campus-wrapper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 48vw;
+  max-width: 760px;
+  min-width: 360px;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.academic-bg-campus-image {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/academic-campus.jpg');
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0.65) 45%, black 85%),
+                      linear-gradient(to bottom, black 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.08) 12%, rgba(0,0,0,0.65) 45%, black 85%);
+  transition: opacity 0.3s ease;
+}
+
+.academic-bg-campus-login .academic-bg-campus-image {
+  opacity: 0.76;
+}
+
+.academic-bg-campus-dashboard .academic-bg-campus-image {
+  opacity: 0.15;
+}
+
+.academic-bg-campus-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #FDFCF8 0%, rgba(253, 252, 248, 0.45) 25%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Sweeping bottom ground curves */
+.academic-bg-bottom-curves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 26vh;
+  min-height: 160px;
+  max-height: 270px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Academic Botanical Illustration (Lower-Left Corner) */
+.academic-bg-botanical-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 15vw;
+  max-width: 210px;
+  min-width: 130px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.academic-bg-botanical-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.botanical-dashboard {
+  opacity: 0.35;
+  transform: scale(0.85);
+  transform-origin: bottom left;
+}
+
+.botanical-form {
+  opacity: 0.3;
+  transform: scale(0.8);
+  transform-origin: bottom left;
+}
+
+/* Academic Motto Decorative Backdrop (Login Page Only) */
+.academic-bg-motto-wrapper {
+  position: absolute;
+  left: 8%;
+  top: 45%;
+  transform: translateY(-50%);
+  max-width: 320px;
+  pointer-events: none;
+  z-index: 2;
+  user-select: none;
+}
+
+.academic-bg-motto-heading {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.7rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  line-height: 1.2;
+}
+
+.motto-word-learn {
+  position: relative;
+}
+
+.motto-dot {
+  color: var(--color-accent-gold-dark);
+  font-style: normal;
+  font-size: 1.1rem;
+}
+
+.academic-bg-motto-line {
+  width: 44px;
+  height: 1.5px;
+  background-color: var(--color-accent-gold);
+  margin: 0.45rem 0 0.9rem 0;
+  border-radius: 1px;
+}
+
+.academic-bg-motto-subtext {
+  font-family: var(--font-family);
+  font-size: 0.925rem;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+
+/* Page-specific background adaptations */
+.academic-bg-data .academic-bg-topright-curves {
+  opacity: 0.45;
+}
+
+.academic-bg-data .academic-bg-bottom-curves {
+  opacity: 0.4;
+}
+
+.academic-bg-form .academic-bg-topright-curves {
+  opacity: 0.65;
+}
+
+.academic-bg-form .academic-bg-bottom-curves {
+  opacity: 0.55;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1250px) {
+  .academic-bg-motto-wrapper {
+    left: 4%;
+    transform: translateY(-50%) scale(0.9);
+    transform-origin: left center;
+  }
+  .academic-bg-campus-wrapper {
+    width: 42vw;
+  }
+}
+
+@media (max-width: 1040px) {
+  .academic-bg-motto-wrapper {
+    display: none;
+  }
+  .academic-bg-campus-wrapper {
+    opacity: 0.45;
+    width: 46vw;
+  }
+  .academic-bg-botanical-wrap {
+    width: 120px;
+    opacity: 0.65;
+  }
+}
+
+@media (max-width: 640px) {
+  .academic-bg-campus-wrapper {
+    display: none;
+  }
+  .academic-bg-topright-curves {
+    width: 65vw;
+    height: 22vh;
+  }
+  .academic-bg-bottom-curves {
+    height: 16vh;
+  }
+  .academic-bg-botanical-wrap {
+    width: 95px;
+    opacity: 0.45;
+  }
+}
+
