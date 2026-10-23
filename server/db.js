@@ -1,8 +1,8 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-
 const os = require('os');
+
 const isVercel = process.env.VERCEL === '1';
 const dbPath = isVercel ? path.join(os.tmpdir(), 'yashtitva.db') : path.join(__dirname, 'yashtitva.db');
 const db = new Database(dbPath);
@@ -72,6 +72,10 @@ function initDB() {
       dueDate TEXT NOT NULL,
       status TEXT NOT NULL,
       lastPaymentDate TEXT,
+      paymentMethod TEXT DEFAULT 'Online Gateway (Razorpay)',
+      taxGst REAL DEFAULT 0,
+      gatewayFee REAL DEFAULT 0,
+      refundedAmount REAL DEFAULT 0,
       FOREIGN KEY (collegeId) REFERENCES colleges(id) ON DELETE CASCADE,
       FOREIGN KEY (licenceId) REFERENCES licences(id) ON DELETE SET NULL
     );
@@ -82,7 +86,91 @@ function initDB() {
       userId TEXT,
       attemptTime INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category TEXT NOT NULL,
+      amount REAL NOT NULL,
+      expenseDate TEXT NOT NULL,
+      vendor TEXT NOT NULL,
+      notes TEXT,
+      isRecurring INTEGER NOT NULL DEFAULT 0,
+      paymentStatus TEXT NOT NULL DEFAULT 'Paid',
+      paymentMethod TEXT DEFAULT 'Corporate Card',
+      receiptName TEXT,
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      collegeId INTEGER NOT NULL,
+      collegeName TEXT NOT NULL,
+      planName TEXT NOT NULL,
+      billingCycle TEXT NOT NULL DEFAULT 'Annual',
+      amount REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Active',
+      startDate TEXT NOT NULL,
+      renewalDate TEXT NOT NULL,
+      autoRenew INTEGER NOT NULL DEFAULT 1,
+      studentsCount INTEGER DEFAULT 0,
+      FOREIGN KEY (collegeId) REFERENCES colleges(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS complaints (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticketCode TEXT UNIQUE NOT NULL,
+      collegeId INTEGER,
+      collegeName TEXT NOT NULL,
+      submitterName TEXT NOT NULL,
+      submitterRole TEXT NOT NULL DEFAULT 'College Admin',
+      submitterEmail TEXT,
+      category TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      description TEXT NOT NULL,
+      priority TEXT NOT NULL DEFAULT 'Medium',
+      status TEXT NOT NULL DEFAULT 'Open',
+      slaHours INTEGER DEFAULT 24,
+      createdAt TEXT NOT NULL,
+      resolvedAt TEXT,
+      resolutionNotes TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      adminUserId TEXT NOT NULL,
+      action TEXT NOT NULL,
+      entityType TEXT NOT NULL,
+      entityId TEXT,
+      details TEXT NOT NULL,
+      ip TEXT,
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS team_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      role TEXT NOT NULL DEFAULT 'SUPER_ADMIN',
+      status TEXT NOT NULL DEFAULT 'Active',
+      lastActive TEXT,
+      permissions TEXT NOT NULL,
+      createdAt TEXT NOT NULL
+    );
   `);
+
+  // Migrations for existing tables
+  try { db.exec("ALTER TABLE payments ADD COLUMN paymentMethod TEXT DEFAULT 'Online Gateway (Razorpay)'"); } catch(e){}
+  try { db.exec("ALTER TABLE payments ADD COLUMN taxGst REAL DEFAULT 0"); } catch(e){}
+  try { db.exec("ALTER TABLE payments ADD COLUMN gatewayFee REAL DEFAULT 0"); } catch(e){}
+  try { db.exec("ALTER TABLE payments ADD COLUMN refundedAmount REAL DEFAULT 0"); } catch(e){}
+  try {
+    db.exec(`
+      UPDATE payments 
+      SET taxGst = ROUND(totalAmount * 0.18),
+          gatewayFee = ROUND(paidAmount * 0.02)
+      WHERE taxGst = 0 OR taxGst IS NULL
+    `);
+  } catch (e) {}
 
   seedData();
 }
@@ -97,7 +185,7 @@ function seedData() {
     db.prepare(`
       INSERT INTO admins (userId, passwordHash, name, role, createdAt)
       VALUES (?, ?, ?, ?, ?)
-    `).run('admin', passwordHash, 'Yashtitva Super Admin', 'SUPER_ADMIN', new Date().toISOString());
+    `).run('admin', passwordHash, 'Yashtitva Super Admin (Founder)', 'SUPER_ADMIN', new Date().toISOString());
 
     console.log('Default Super Admin account seeded successfully.');
   }
@@ -121,8 +209,8 @@ function seedData() {
 
     const insertPayment = db.prepare(`
       INSERT INTO payments (
-        collegeId, licenceId, invoiceNumber, totalAmount, paidAmount, outstandingAmount, dueDate, status, lastPaymentDate
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        collegeId, licenceId, invoiceNumber, totalAmount, paidAmount, outstandingAmount, dueDate, status, lastPaymentDate, paymentMethod, taxGst, gatewayFee
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const seedColleges = [
@@ -141,7 +229,9 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-08-15',
         paymentStatus: 'Paid',
-        lastPayment: '2026-08-10'
+        lastPayment: '2026-08-10',
+        planName: 'Enterprise Campus Plan',
+        students: 4500
       },
       {
         name: 'VJTI Technical Institute',
@@ -156,9 +246,11 @@ function seedData() {
         totalFee: 220000,
         paid: 100000,
         outstanding: 120000,
-        dueDate: '2026-10-15', // Overdue
+        dueDate: '2026-10-15',
         paymentStatus: 'Overdue',
-        lastPayment: '2026-05-12'
+        lastPayment: '2026-05-12',
+        planName: 'Pro Campus Plan',
+        students: 3800
       },
       {
         name: 'Symbiosis International University',
@@ -173,9 +265,11 @@ function seedData() {
         totalFee: 300000,
         paid: 150000,
         outstanding: 150000,
-        dueDate: '2026-11-05', // Pending Payment
+        dueDate: '2026-11-05',
         paymentStatus: 'Pending Payment',
-        lastPayment: '2026-04-20'
+        lastPayment: '2026-04-20',
+        planName: 'Enterprise Campus Plan',
+        students: 6200
       },
       {
         name: 'Grant Medical College and Sir J.J. Hospital',
@@ -192,7 +286,9 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-07-30',
         paymentStatus: 'Paid',
-        lastPayment: '2026-07-25'
+        lastPayment: '2026-07-25',
+        planName: 'Pro Campus Plan',
+        students: 2100
       },
       {
         name: 'RV College of Engineering',
@@ -207,9 +303,11 @@ function seedData() {
         totalFee: 240000,
         paid: 160000,
         outstanding: 80000,
-        dueDate: '2026-10-10', // Overdue
+        dueDate: '2026-10-10',
         paymentStatus: 'Overdue',
-        lastPayment: '2026-06-14'
+        lastPayment: '2026-06-14',
+        planName: 'Pro Campus Plan',
+        students: 4100
       },
       {
         name: 'National Law School of India University',
@@ -226,7 +324,9 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-09-01',
         paymentStatus: 'Paid',
-        lastPayment: '2026-08-28'
+        lastPayment: '2026-08-28',
+        planName: 'Standard Campus Plan',
+        students: 1500
       },
       {
         name: 'Madras Christian College',
@@ -243,7 +343,9 @@ function seedData() {
         outstanding: 90000,
         dueDate: '2026-11-20',
         paymentStatus: 'Pending Payment',
-        lastPayment: '2026-05-18'
+        lastPayment: '2026-05-18',
+        planName: 'Standard Campus Plan',
+        students: 3400
       },
       {
         name: 'All India Institute of Medical Sciences (AIIMS)',
@@ -260,7 +362,9 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-08-30',
         paymentStatus: 'Paid',
-        lastPayment: '2026-08-15'
+        lastPayment: '2026-08-15',
+        planName: 'Enterprise Campus Plan',
+        students: 2800
       },
       {
         name: 'Faculty of Management Studies (FMS)',
@@ -277,7 +381,9 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-09-15',
         paymentStatus: 'Paid',
-        lastPayment: '2026-09-05'
+        lastPayment: '2026-09-05',
+        planName: 'Pro Campus Plan',
+        students: 1200
       },
       {
         name: 'Maharashtra Institute of Technology (MIT-WPU)',
@@ -294,9 +400,55 @@ function seedData() {
         outstanding: 0,
         dueDate: '2026-12-31',
         paymentStatus: 'Pending Verification',
-        lastPayment: null
+        lastPayment: null,
+        planName: 'Pending Plan Selection',
+        students: 0
+      },
+      {
+        name: 'St. Xavier’s College Autonomous',
+        category: 'Affiliated College',
+        affiliatedUniversity: 'University of Mumbai',
+        collegeCode: 'SXC-1869',
+        uniqueId: 'UNQ-MH-SXC-11',
+        state: 'Maharashtra',
+        district: 'Mumbai',
+        collegeType: 'Arts and Science',
+        licenceStatus: 'Trial',
+        totalFee: 150000,
+        paid: 0,
+        outstanding: 150000,
+        dueDate: '2026-11-15',
+        paymentStatus: 'Trial Period (30 Days)',
+        lastPayment: null,
+        planName: 'Free Trial (Expiring in 12 days)',
+        students: 2900
+      },
+      {
+        name: 'Birla Institute of Technology and Science (BITS Pilani)',
+        category: 'Deemed University',
+        affiliatedUniversity: null,
+        collegeCode: 'BITS-1964',
+        uniqueId: 'UNQ-RJ-BITS-12',
+        state: 'Rajasthan',
+        district: 'Jhunjhunu',
+        collegeType: 'Engineering',
+        licenceStatus: 'Active',
+        totalFee: 320000,
+        paid: 320000,
+        outstanding: 0,
+        dueDate: '2026-09-20',
+        paymentStatus: 'Paid',
+        lastPayment: '2026-09-12',
+        planName: 'Enterprise Campus Plan',
+        students: 5400
       }
     ];
+
+    const insertSubscription = db.prepare(`
+      INSERT INTO subscriptions (
+        collegeId, collegeName, planName, billingCycle, amount, status, startDate, renewalDate, autoRenew, studentsCount
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
     const insertTx = db.transaction(() => {
       seedColleges.forEach((c, idx) => {
@@ -319,16 +471,19 @@ function seedData() {
 
         const collegeId = result.lastInsertRowid;
 
-        if (c.licenceStatus === 'Active') {
+        if (c.licenceStatus === 'Active' || c.licenceStatus === 'Trial') {
           const licResult = insertLicence.run(
             collegeId,
             `YASH-LIC-2026-${1000 + collegeId}`,
-            'Annual Institution Access License',
+            c.planName,
             '2026-01-01',
             '2026-12-31',
             c.totalFee,
-            'Active'
+            c.licenceStatus
           );
+
+          const tax = Math.round(c.totalFee * 0.18);
+          const gateway = Math.round(c.paid * 0.02);
 
           insertPayment.run(
             collegeId,
@@ -339,14 +494,259 @@ function seedData() {
             c.outstanding,
             c.dueDate,
             c.paymentStatus,
-            c.lastPayment
+            c.lastPayment,
+            'Online Gateway (Razorpay)',
+            tax,
+            gateway
+          );
+
+          insertSubscription.run(
+            collegeId,
+            c.name,
+            c.planName,
+            'Annual',
+            c.totalFee,
+            c.licenceStatus === 'Trial' ? 'Trial' : 'Active',
+            '2026-01-01',
+            '2026-12-31',
+            1,
+            c.students
           );
         }
       });
     });
 
-    insertTx();
-    console.log('Seeded initial college, licence, and payment records into SQLite.');
+  }
+
+  // Ensure subscriptions are populated if empty
+  const subCount = db.prepare('SELECT COUNT(*) as count FROM subscriptions').get().count;
+  if (subCount === 0) {
+    const collegesWithLicences = db.prepare(`
+      SELECT c.id, c.name, c.licenceStatus, l.planType, l.totalLicenceFee, l.startDate, l.expiryDate
+      FROM colleges c
+      JOIN licences l ON c.id = l.collegeId
+    `).all();
+
+    const insertSub = db.prepare(`
+      INSERT INTO subscriptions (
+        collegeId, collegeName, planName, billingCycle, amount, status, startDate, renewalDate, autoRenew, studentsCount
+      ) VALUES (?, ?, ?, 'Annual', ?, ?, ?, ?, 1, ?)
+    `);
+
+    const subTx = db.transaction(() => {
+      collegesWithLicences.forEach((cl) => {
+        const studentCount = 1500 + (cl.id * 350);
+        insertSub.run(
+          cl.id,
+          cl.name,
+          cl.planType || 'Standard Campus Plan',
+          cl.totalLicenceFee || 220000,
+          cl.licenceStatus === 'Trial' ? 'Trial' : 'Active',
+          cl.startDate || '2026-01-01',
+          cl.expiryDate || '2026-12-31',
+          studentCount
+        );
+      });
+    });
+    subTx();
+    console.log('Synchronized subscriptions from licences.');
+  }
+
+  // Seed Operating Expenses if table is empty
+  const expenseCount = db.prepare('SELECT COUNT(*) as count FROM expenses').get().count;
+  if (expenseCount === 0) {
+    const insertExp = db.prepare(`
+      INSERT INTO expenses (category, amount, expenseDate, vendor, notes, isRecurring, paymentStatus, paymentMethod, receiptName, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const seedExpenses = [
+      { category: 'Hosting & Cloud Infrastructure', amount: 48500, date: '2026-10-02', vendor: 'Amazon Web Services (AWS)', notes: 'EC2 production cluster, S3 storage & CloudFront CDN', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'AWS_Oct_Invoice_48500.pdf' },
+      { category: 'Database Services', amount: 22000, date: '2026-10-05', vendor: 'MongoDB Atlas & SQLite Cloud', notes: 'Primary high-availability cluster & replication', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'DB_Cluster_Oct.pdf' },
+      { category: 'AI API Usage', amount: 34200, date: '2026-10-10', vendor: 'Anthropic & OpenAI & Gemini', notes: 'Document verification OCR, student achievement summarization', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'AI_Token_Invoice_1026.pdf' },
+      { category: 'SMS & Email Services', amount: 14500, date: '2026-10-12', vendor: 'Twilio & Resend', notes: 'Transactional student OTPs, college notification digests', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'Resend_Oct_Stmt.pdf' },
+      { category: 'Storage & Bandwidth', amount: 8900, date: '2026-10-14', vendor: 'Cloudflare', notes: 'DDoS mitigation, enterprise SSL, R2 certificate asset storage', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'CF_Monthly_8900.pdf' },
+      { category: 'Development & Engineering', amount: 185000, date: '2026-10-01', vendor: 'Core Engineering Team', notes: 'Monthly payroll for full-stack, mobile, and security engineers', recurring: 1, status: 'Paid', method: 'Bank Transfer (NEFT)', receipt: 'Payroll_Disbursement_Oct.pdf' },
+      { category: 'Marketing & Advertising', amount: 42000, date: '2026-10-15', vendor: 'LinkedIn & EdTech Summit Ads', notes: 'Higher education dean outreach campaigns and summit sponsorship', recurring: 0, status: 'Paid', method: 'Corporate Card', receipt: 'LinkedIn_Campaign_Oct.pdf' },
+      { category: 'Payment Gateway Fees', amount: 16800, date: '2026-10-18', vendor: 'Razorpay Software Pvt Ltd', notes: 'Payment processing fees on ₹8.4L collected payments (2%)', recurring: 1, status: 'Paid', method: 'Automated Deduction', receipt: 'Razorpay_Oct_Stmt.pdf' },
+      { category: 'Software Subscriptions & SaaS', amount: 12500, date: '2026-10-04', vendor: 'GitHub, Figma, Slack, Jira', notes: 'Developer licenses and product design tool seats', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'SaaS_Tooling_Oct.pdf' },
+      { category: 'Customer Support & Success', amount: 35000, date: '2026-10-01', vendor: 'Support Specialists', notes: 'College onboarding assistance and 24/7 student query desk', recurring: 1, status: 'Paid', method: 'Bank Transfer (NEFT)', receipt: 'Support_Retainer_Oct.pdf' },
+      { category: 'Hosting & Cloud Infrastructure', amount: 46200, date: '2026-09-02', vendor: 'Amazon Web Services (AWS)', notes: 'September cloud compute & bandwidth', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'AWS_Sep_Invoice.pdf' },
+      { category: 'Development & Engineering', amount: 185000, date: '2026-09-01', vendor: 'Core Engineering Team', notes: 'September developer payroll', recurring: 1, status: 'Paid', method: 'Bank Transfer (NEFT)', receipt: 'Payroll_Sep.pdf' },
+      { category: 'AI API Usage', amount: 28500, date: '2026-09-10', vendor: 'Anthropic & Gemini', notes: 'September document parsing tokens', recurring: 1, status: 'Paid', method: 'Corporate Card', receipt: 'AI_Sep.pdf' }
+    ];
+
+    const expTx = db.transaction(() => {
+      seedExpenses.forEach(exp => {
+        insertExp.run(
+          exp.category,
+          exp.amount,
+          exp.date,
+          exp.vendor,
+          exp.notes,
+          exp.recurring,
+          exp.status,
+          exp.method,
+          exp.receipt,
+          new Date().toISOString()
+        );
+      });
+    });
+    expTx();
+    console.log('Seeded operating expenses.');
+  }
+
+  // Seed Customer Complaints / Tickets if empty
+  const complaintCount = db.prepare('SELECT COUNT(*) as count FROM complaints').get().count;
+  if (complaintCount === 0) {
+    const insertComplaint = db.prepare(`
+      INSERT INTO complaints (ticketCode, collegeId, collegeName, submitterName, submitterRole, submitterEmail, category, subject, description, priority, status, slaHours, createdAt, resolvedAt, resolutionNotes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const seedComplaints = [
+      {
+        ticketCode: 'TCK-2026-881',
+        collegeId: 2,
+        collegeName: 'VJTI Technical Institute',
+        submitterName: 'Prof. Rajesh Sharma',
+        submitterRole: 'College Admin',
+        submitterEmail: 'admin.tech@vjti.ac.in',
+        category: 'Licensing & Invoices',
+        subject: 'Invoice GST breakdown clarification for Finance Office',
+        description: 'Our accounts department requires split GST (CGST 9% + SGST 9%) clearly annotated on invoice INV-YASH-202602 to release the remaining balance.',
+        priority: 'High',
+        status: 'In Progress',
+        slaHours: 24,
+        createdAt: '2026-10-21T09:30:00Z',
+        resolvedAt: null,
+        notes: null
+      },
+      {
+        ticketCode: 'TCK-2026-879',
+        collegeId: 1,
+        collegeName: 'College of Engineering Pune (COEP)',
+        submitterName: 'Dr. Anita Deshmukh',
+        submitterRole: 'College Admin',
+        submitterEmail: 'dean.acad@coep.ac.in',
+        category: 'Student Portal Sync',
+        subject: 'Bulk student roster import CSV formatting error',
+        description: 'Encountered duplicate roll number alert during second-year student batch upload. Need engineering assistance to skip existing records.',
+        priority: 'Medium',
+        status: 'Open',
+        slaHours: 48,
+        createdAt: '2026-10-22T14:15:00Z',
+        resolvedAt: null,
+        notes: null
+      },
+      {
+        ticketCode: 'TCK-2026-865',
+        collegeId: 5,
+        collegeName: 'RV College of Engineering',
+        submitterName: 'Karthik Ramanathan',
+        submitterRole: 'Campus Coordinator',
+        submitterEmail: 'karthik@rvce.edu.in',
+        category: 'Certificate Generation',
+        subject: 'QR code verification redirecting to staging domain',
+        description: 'Event participation certificates issued yesterday contained verification QR codes pointing to temporary URL. All certificates re-issued correctly.',
+        priority: 'Critical',
+        status: 'Resolved',
+        slaHours: 12,
+        createdAt: '2026-10-18T11:00:00Z',
+        resolvedAt: '2026-10-18T15:45:00Z',
+        notes: 'DNS mapping issue resolved on Cloudflare edge. All generated PDF hashes updated.'
+      },
+      {
+        ticketCode: 'TCK-2026-850',
+        collegeId: 3,
+        collegeName: 'Symbiosis International University',
+        submitterName: 'Pooja Kulkarni',
+        submitterRole: 'Faculty Coordinator',
+        submitterEmail: 'pooja.k@siu.edu.in',
+        category: 'Platform Access',
+        subject: 'Department head permission delegation request',
+        description: 'Need capability for 4 HoDs to approve student hackathon participation entries before final submission to Super Admin.',
+        priority: 'Low',
+        status: 'Resolved',
+        slaHours: 72,
+        createdAt: '2026-10-14T10:00:00Z',
+        resolvedAt: '2026-10-15T16:20:00Z',
+        notes: 'Enabled custom role RBAC preset on Symbiosis admin portal.'
+      }
+    ];
+
+    const cTx = db.transaction(() => {
+      seedComplaints.forEach(c => {
+        insertComplaint.run(
+          c.ticketCode,
+          c.collegeId,
+          c.collegeName,
+          c.submitterName,
+          c.submitterRole,
+          c.submitterEmail,
+          c.category,
+          c.subject,
+          c.description,
+          c.priority,
+          c.status,
+          c.slaHours,
+          c.createdAt,
+          c.resolvedAt,
+          c.notes
+        );
+      });
+    });
+    cTx();
+    console.log('Seeded complaints and support tickets.');
+  }
+
+  // Seed Audit Logs if empty
+  const auditCount = db.prepare('SELECT COUNT(*) as count FROM audit_logs').get().count;
+  if (auditCount === 0) {
+    const insertAudit = db.prepare(`
+      INSERT INTO audit_logs (adminUserId, action, entityType, entityId, details, ip, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const seedAudits = [
+      { admin: 'admin', action: 'LOGIN_SUCCESS', entity: 'AUTH', id: 'admin', details: 'Successful authentication from authorized device (IP: 192.168.1.100)', ip: '192.168.1.100', time: '2026-10-23T16:45:00Z' },
+      { admin: 'admin', action: 'COLLEGE_VERIFIED', entity: 'COLLEGES', id: '1', details: 'Verified and approved COEP application with licence YASH-LIC-2026-1001', ip: '192.168.1.100', time: '2026-10-20T11:20:00Z' },
+      { admin: 'admin', action: 'EXPENSE_RECORDED', entity: 'FINANCE', id: 'EXP-101', details: 'Recorded AWS monthly hosting infrastructure expense: ₹48,500', ip: '192.168.1.100', time: '2026-10-15T14:10:00Z' },
+      { admin: 'admin', action: 'INVOICE_GENERATED', entity: 'PAYMENTS', id: 'INV-YASH-202603', details: 'Issued annual licence invoice to Symbiosis International University (₹3,00,000)', ip: '192.168.1.100', time: '2026-10-10T09:15:00Z' },
+      { admin: 'admin', action: 'SECURITY_SCAN', entity: 'SYSTEM', id: 'SCAN-09', details: 'Automated rate-limiting and SQL injection vulnerability audit completed (0 flags)', ip: '127.0.0.1', time: '2026-10-08T03:00:00Z' }
+    ];
+
+    const aTx = db.transaction(() => {
+      seedAudits.forEach(a => {
+        insertAudit.run(a.admin, a.action, a.entity, a.id, a.details, a.ip, a.time);
+      });
+    });
+    aTx();
+    console.log('Seeded audit logs.');
+  }
+
+  // Seed Team Members if empty
+  const teamCount = db.prepare('SELECT COUNT(*) as count FROM team_members').get().count;
+  if (teamCount === 0) {
+    const insertTeam = db.prepare(`
+      INSERT INTO team_members (name, email, role, status, lastActive, permissions, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const seedTeam = [
+      { name: 'Ayush Chandra Sahu', email: 'owner@yashtitva.com', role: 'PLATFORM_OWNER', status: 'Active', lastActive: '2026-10-23T22:30:00Z', perms: 'ALL_PERMISSIONS,FINANCE_ADMIN,VERIFICATION_SUPERVISOR,SYSTEM_SECURITY', created: '2026-01-01' },
+      { name: 'Vikram Mehta, CA', email: 'vikram.finance@yashtitva.com', role: 'FINANCIAL_AUDITOR', status: 'Active', lastActive: '2026-10-22T17:15:00Z', perms: 'FINANCE_READ_WRITE,INVOICE_MANAGE,TAX_AUDIT,REPORTS_EXPORT', created: '2026-02-15' },
+      { name: 'Dr. Rohini Sen', email: 'rohini.onboarding@yashtitva.com', role: 'COLLEGE_OPERATIONS_LEAD', status: 'Active', lastActive: '2026-10-23T11:45:00Z', perms: 'COLLEGE_VERIFY,SUBSCRIPTIONS_VIEW,COMPLAINTS_RESOLVE', created: '2026-03-01' },
+      { name: 'Pawan Kalyan', email: 'support.lead@yashtitva.com', role: 'SUPPORT_SPECIALIST', status: 'Active', lastActive: '2026-10-23T20:10:00Z', perms: 'COMPLAINTS_READ_WRITE,STUDENT_VERIFICATION_SUPPORT', created: '2026-05-10' }
+    ];
+
+    const tTx = db.transaction(() => {
+      seedTeam.forEach(t => {
+        insertTeam.run(t.name, t.email, t.role, t.status, t.lastActive, t.perms, t.created);
+      });
+    });
+    tTx();
+    console.log('Seeded team members.');
   }
 }
 
